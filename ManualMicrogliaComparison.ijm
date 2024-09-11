@@ -4,7 +4,8 @@
  * Creates an ROI around each cell of interest based upon the binary image 
  * Then goes through and zooms into the ROI's one by one, asking for user input
  */
-
+ 
+//MAIN PROGRAM
 //use file browser to open green/blue image
 		Dialog.create("ImageOpener");
 		Dialog.addMessage("Open your original test image (blue/green)");
@@ -20,7 +21,7 @@
 	    //selects each ROI in the binary image, iterating through 
 		for(i=0; i < number; i++) {
 			roiManager("select", i);
-			zoom(binaryImage, originalImage, binaryImageID, originalImageID, i);
+			zoom(binaryImageID, originalImageID, i);
 			Dialog.createNonBlocking("Manual Editor");
 			Dialog.addMessage("Make manual edits desired. Press enter to move onto next ROI");
 			Dialog.addMessage("Current ROI: " + i+1);
@@ -48,11 +49,16 @@
 		Dialog.addMessage(arrayString);
 		Dialog.show();
 		
-/*
- * Function that opens a user input binary image 
- * Returns an array of data [the number of ROI's in the array, the unique ID of the binary Image, the binaryImage]
+/*HELPER FUNCTIONS
+ * openBinary() 
+ * zoom(imageNameBinary, imageNameGB, imageIDBinary, imageIDGB, index)
  */
+
 function openBinary(){
+/* Function that opens a user input binary image 
+ * Returns an array of data from the binary image for use: 
+ * [the number of ROI's in the array, the unique ID of the binary Image, the binaryImage]
+ */
 	//use file browser to open binary image
 		Dialog.create("BinaryOpener");
 		Dialog.addMessage("Open your binary image");
@@ -81,8 +87,12 @@ function openBinary(){
 	return resultArray;
 }
 
-// ImageJ macro to zoom to the selected ROI
-function zoom(imageNameBinary, imageNameGB, imageIDBinary, imageIDGB, index) {
+/*ImageJ macro to zoom to the selected ROI, takes 4 arguments
+ * imageIDBinary: the unique id of the binary image
+ * imageIDGB: the unique id of the original image
+ * index: the index of the ROI that you want to zoom to 
+ */
+function zoom(imageIDBinary, imageIDGB, index) {
 // Check if there's an ROI selected
 	if (roiManager("count") == 0) {
 		showMessage("No ROI selected", "Please select an ROI before running this script.");
