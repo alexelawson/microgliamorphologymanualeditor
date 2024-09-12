@@ -15,6 +15,7 @@
 		originalImageID = getImageID();
 		binaryDataArray = openBinary();
 		number = binaryDataArray[0];
+		print(number);
 		binaryImageID = binaryDataArray[1];
 		binaryImage = binaryDataArray[2];
 		selectedArray = newArray(number);
@@ -83,8 +84,10 @@ function openBinary(){
 		decision = Dialog.getCheckbox();
 		if (decision == true) {
 			Dialog.create("ROI opener");
-			File.openDialog("Open your binary test image");
+			Dialog.addMessage("Choose a zip file with ROI's defined:");
 			Dialog.show();
+			roiOfInterest = File.openDialog("Choose your zip with ROI's defined:");
+			roiManager("open", roiOfInterest);
 			number = roiManager("count");		
 			run("Synchronize Windows"); //opens synchronize windows for ease of analysis
 		}else {
