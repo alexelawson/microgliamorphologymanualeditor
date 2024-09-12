@@ -31,16 +31,27 @@
 			numberString = Dialog.getString();
 			markedOrNot = Dialog.getCheckbox();
 			if (markedOrNot == true) {
-				selectedArray[i] = i+1;
+				Dialog.createNonBlocking("Comments about marking");
+				Dialog.addMessage("Please enter any comments about the marking, if left blank the program will default to saving only the index/name of the ROI");
+				Dialog.addString("Comment: ", "Blank");
+				Dialog.show();
+				commentROI = Dialog.getString();
+				if (commentROI == "Blank"){
+					selectedArray[i] = i+1;
+				}
+				else{
+					selectedArray[i] = toString(i+1) + " - " + commentROI;
+				}
+				Array.print(selectedArray);
 			//	Array.print(selectedArray);
 			}
 			if (numberString != "ROI"){
 				i = parseFloat(numberString)-2; }
 		}
-		arrayString = " ";
+		arrayString = "Index:    Comment:   \n";
 		for (i=0; i < number; i++) {
 			if (selectedArray[i]!=0){
-				arrayString = arrayString + selectedArray[i] + ", ";
+				arrayString = arrayString + selectedArray[i] + "\n";
 			}
 		}
 		Dialog.createNonBlocking("End of Program");
@@ -67,10 +78,13 @@ function openBinary(){
 		open(binaryImage);
 		binaryImageID = getImageID();
 		Dialog.create("ROI Manager");
-		Dialog.addCheckbox("Does your test image have ROIs traced?", false);
+		Dialog.addCheckbox("Do you have pre-saved ROI's?", false);
 		Dialog.show();
 		decision = Dialog.getCheckbox();
 		if (decision == true) {
+			Dialog.create("ROI opener");
+			File.openDialog("Open your binary test image");
+			Dialog.show();
 			number = roiManager("count");		
 			run("Synchronize Windows"); //opens synchronize windows for ease of analysis
 		}else {
