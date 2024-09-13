@@ -30,13 +30,12 @@
 		Dialog.show();
 		
 /*HELPER FUNCTIONS
- * roiIterator(number, selectedArray, binaryImageID, originalImageID)
- * openGBImage()
- * openBinary() 
- * zoom(imageNameBinary, imageNameGB, imageIDBinary, imageIDGB, index)
+ * roiIterator(number, selectedArray, binaryImageID, originalImageID): function that iterates through ROI of interest
+ * openGBImage(): function to open a GB image
+ * openBinary(): function to open a binary image 
+ * zoom(imageNameBinary, imageNameGB, imageIDBinary, imageIDGB, index): zooms in on two images to a highlighted ROI defined by the input index
  */
-
-
+ 
 function roiIterator(number, selectedArray, binaryImageID, originalImageID){
 /* 
  * Function to iterate through an input number of ROI's in two images
@@ -69,16 +68,15 @@ function roiIterator(number, selectedArray, binaryImageID, originalImageID){
 			else{ //if any comment saves the comment as well as the index
 				selectedArray[i] = toString(i+1) + " - " + commentROI;
 			}
-			Array.print(selectedArray);
-			//	Array.print(selectedArray);
+		//	Array.print(selectedArray);
 			}
 		if (numberString != "ROI"){
-			if (isNaN(parseInt(numberString))){
+			if (isNaN(parseInt(numberString))){ //invalid input 
 				Dialog.create("Erorr. Invalid ROI entered.");
 				Dialog.addMessage("The program will jump to the next ROI which is: " + (toString(i+2)));
 				Dialog.show();
 			}
-			else{
+			else{ //valid input 
 				i = parseFloat(numberString)-2;
 			}
 			}
@@ -99,7 +97,7 @@ function openGBImage(){
 		originalImage = File.openDialog("Open your original test image");
 		open(originalImage);
 		originalImageID = getImageID();
-		if (rgbChoice == true){
+		if (rgbChoice == true){ //opening channels tool for RGB image
 			run("Channels Tool...");
 		}
 		originalResults = newArray(2);
@@ -123,7 +121,7 @@ function openBinary(){
 		Dialog.addCheckbox("Do you have pre-saved ROI's?", false);
 		Dialog.show();
 		decision = Dialog.getCheckbox();
-		if (decision == true) {
+		if (decision == true) { //if presaved ROI's
 			Dialog.create("ROI opener");
 			Dialog.addMessage("Choose a zip file with ROI's defined:");
 			Dialog.show();
@@ -131,7 +129,7 @@ function openBinary(){
 			roiManager("open", roiOfInterest);
 			number = roiManager("count");		
 			run("Synchronize Windows"); //opens synchronize windows for ease of analysis
-		}else {
+		}else { //no presaved ROI's
 //create an ROI around each defined area in the binary image (i.e. white sections)
 			selectImage(binaryImageID);
 			run("Analyze Particles...", "size=600-Infinity show=Nothing pixel include add include");
@@ -164,45 +162,3 @@ function zoom(imageIDBinary, imageIDGB, index) {
 	roiManager("Select", index);
 	run("To Selection");
 }
-
-
-	    /*
-		for(i=0; i < number; i++) {
-			roiManager("select", i); 
-			zoom(binaryImageID, originalImageID, i);
-			Dialog.createNonBlocking("Manual Editor");
-			Dialog.setLocation(1200,0);
-			Dialog.addMessage("Make manual edits desired. Press enter to move onto next ROI");
-			Dialog.addMessage("Current ROI: " + i+1);
-			Dialog.addString("Enter a specific roi if desired:", "ROI"); //option to jump to a specific ROI index
-			Dialog.addCheckbox("Mark Microglia", false); //option to mark for commenting
-			Dialog.show();
-			numberString = Dialog.getString();
-			markedOrNot = Dialog.getCheckbox();
-			if (markedOrNot == true) { //if you marked the ROI gives the user the ability to add a comment
-				Dialog.createNonBlocking("Comments about marking");
-				Dialog.addMessage("Please enter any comments about the marking, if left blank the program will default to saving only the index/name of the ROI");
-				Dialog.addString("Comment: ", "Blank");
-				Dialog.show();
-				commentROI = Dialog.getString();
-				if (commentROI == "Blank"){ //if no comment, just saves the index of the ROI
-					selectedArray[i] = i+1;
-				}
-				else{ //if any comment saves the comment as well as the index
-					selectedArray[i] = toString(i+1) + " - " + commentROI;
-				}
-				Array.print(selectedArray);
-			//	Array.print(selectedArray);
-			}
-			if (numberString != "ROI"){
-				if (isNaN(parseInt(numberString))){
-					Dialog.create("Erorr. Invalid ROI entered.");
-					Dialog.addMessage("The program will jump to the next ROI which is: " + (toString(i+2)));
-					Dialog.show();
-				}
-				else{
-					i = parseFloat(numberString)-2;
-				}
-				}
-		}
-		*/
