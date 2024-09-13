@@ -24,6 +24,7 @@
 			roiManager("select", i);
 			zoom(binaryImageID, originalImageID, i);
 			Dialog.createNonBlocking("Manual Editor");
+			Dialog.setLocation(1200,0);
 			Dialog.addMessage("Make manual edits desired. Press enter to move onto next ROI");
 			Dialog.addMessage("Current ROI: " + i+1);
 			Dialog.addString("Enter a specific roi if desired:", "ROI");
@@ -47,7 +48,8 @@
 			//	Array.print(selectedArray);
 			}
 			if (numberString != "ROI"){
-				i = parseFloat(numberString)-2; }
+				i = parseFloat(numberString)-2;
+				}
 		}
 		arrayString = "Index:    Comment:   \n";
 		for (i=0; i < number; i++) {
