@@ -6,57 +6,23 @@
  */
  
 //MAIN PROGRAM
-//use file browser to open green/blue image
-		Dialog.create("ImageOpener");
-		Dialog.addMessage("Open your original test image (blue/green)");
-		Dialog.show();
-		originalImage = File.openDialog("Open your original test image");
-		open(originalImage);
-		originalImageID = getImageID();
-		binaryDataArray = openBinary();
+		binaryDataArray = openBinary(); //open the binary image 
 		number = binaryDataArray[0];
-		print(number);
 		binaryImageID = binaryDataArray[1];
 		binaryImage = binaryDataArray[2];
-		selectedArray = newArray(number);
-	    //selects each ROI in the binary image, iterating through 
-		for(i=0; i < number; i++) {
-			roiManager("select", i);
-			zoom(binaryImageID, originalImageID, i);
-			Dialog.createNonBlocking("Manual Editor");
-			Dialog.setLocation(1200,0);
-			Dialog.addMessage("Make manual edits desired. Press enter to move onto next ROI");
-			Dialog.addMessage("Current ROI: " + i+1);
-			Dialog.addString("Enter a specific roi if desired:", "ROI");
-			Dialog.addCheckbox("Mark Microglia", false);
-			Dialog.show();
-			numberString = Dialog.getString();
-			markedOrNot = Dialog.getCheckbox();
-			if (markedOrNot == true) {
-				Dialog.createNonBlocking("Comments about marking");
-				Dialog.addMessage("Please enter any comments about the marking, if left blank the program will default to saving only the index/name of the ROI");
-				Dialog.addString("Comment: ", "Blank");
-				Dialog.show();
-				commentROI = Dialog.getString();
-				if (commentROI == "Blank"){
-					selectedArray[i] = i+1;
-				}
-				else{
-					selectedArray[i] = toString(i+1) + " - " + commentROI;
-				}
-				Array.print(selectedArray);
-			//	Array.print(selectedArray);
-			}
-			if (numberString != "ROI"){
-				i = parseFloat(numberString)-2;
-				}
-		}
-		arrayString = "Index:    Comment:   \n";
-		for (i=0; i < number; i++) {
+		originalImageBGArray = openGBImage(); //open the GB image 
+		originalImage = originalImageBGArray[0];
+		originalImageID = originalImageBGArray[1];
+		selectedArray = newArray(number); //array for storing comments about marked ROI's
+		selectedArray = roiIterator(number, selectedArray, binaryImageID, originalImageID);
+		//compiling a string with all the outputs 
+		arrayString = "Index:    Comment:   \n"; //setting up the first line for output 
+		for (i=0; i < number; i++) { //creating the user output to display comments about the marked microglia
 			if (selectedArray[i]!=0){
 				arrayString = arrayString + selectedArray[i] + "\n";
 			}
 		}
+		//end of program message 
 		Dialog.createNonBlocking("End of Program");
 		Dialog.addMessage("You've hit the end of the program. Save the final edited binary image.");
 		Dialog.addMessage("The following microglia ROI's were marked:");
@@ -64,10 +30,83 @@
 		Dialog.show();
 		
 /*HELPER FUNCTIONS
+ * roiIterator(number, selectedArray, binaryImageID, originalImageID)
+ * openGBImage()
  * openBinary() 
  * zoom(imageNameBinary, imageNameGB, imageIDBinary, imageIDGB, index)
  */
 
+
+function roiIterator(number, selectedArray, binaryImageID, originalImageID){
+/* 
+ * Function to iterate through an input number of ROI's in two images
+ * number: number of ROI's in the manager, integer
+ * selectedArray: array for storing comments about marked microglia, array
+ * binaryImageID: unique ID for the binary image 
+ * originalImageID: unique ID for the GB image 
+ */
+	for(i=0; i < number; i++) {
+		roiManager("select", i); 
+		zoom(binaryImageID, originalImageID, i);
+		Dialog.createNonBlocking("Manual Editor");
+		Dialog.setLocation(1200,0);
+		Dialog.addMessage("Make manual edits desired. Press enter to move onto next ROI");
+		Dialog.addMessage("Current ROI: " + i+1);
+		Dialog.addString("Enter a specific roi if desired:", "ROI"); //option to jump to a specific ROI index
+		Dialog.addCheckbox("Mark Microglia", false); //option to mark for commenting
+		Dialog.show();
+		numberString = Dialog.getString();
+		markedOrNot = Dialog.getCheckbox();
+		if (markedOrNot == true) { //if you marked the ROI gives the user the ability to add a comment
+			Dialog.createNonBlocking("Comments about marking");
+			Dialog.addMessage("Please enter any comments about the marking, if left blank the program will default to saving only the index/name of the ROI");
+			Dialog.addString("Comment: ", "Blank");
+			Dialog.show();
+			commentROI = Dialog.getString();
+			if (commentROI == "Blank"){ //if no comment, just saves the index of the ROI
+				selectedArray[i] = i+1;
+			}
+			else{ //if any comment saves the comment as well as the index
+				selectedArray[i] = toString(i+1) + " - " + commentROI;
+			}
+			Array.print(selectedArray);
+			//	Array.print(selectedArray);
+			}
+		if (numberString != "ROI"){
+			if (isNaN(parseInt(numberString))){
+				Dialog.create("Erorr. Invalid ROI entered.");
+				Dialog.addMessage("The program will jump to the next ROI which is: " + (toString(i+2)));
+				Dialog.show();
+			}
+			else{
+				i = parseFloat(numberString)-2;
+			}
+			}
+		}
+		return selectedArray;
+}
+function openGBImage(){
+/*
+ * Function to open a Green/Blue image
+ * Gives the option of opening an image with RGB channels or just a regular image, only difference is whether channels tool 
+ * is opened upon initiation. 
+ */
+		Dialog.create("ImageOpener");
+		Dialog.addMessage("Open your original test image (blue/green)");
+		Dialog.addCheckbox("Is your image a split channel RGB?", false);
+		Dialog.show();
+		rgbChoice = Dialog.getCheckbox();
+		originalImage = File.openDialog("Open your original test image");
+		open(originalImage);
+		originalImageID = getImageID();
+		if (rgbChoice == true){
+			run("Channels Tool...");
+		}
+		originalResults = newArray(2);
+		originalResults[0]=originalImage;
+		originalResults[1]=originalImageID;
+		return originalResults;
+}
 function openBinary(){
 /* Function that opens a user input binary image 
  * Returns an array of data from the binary image for use: 
@@ -106,12 +145,12 @@ function openBinary(){
 	return resultArray;
 }
 
-/*ImageJ macro to zoom to the selected ROI, takes 4 arguments
- * imageIDBinary: the unique id of the binary image
- * imageIDGB: the unique id of the original image
- * index: the index of the ROI that you want to zoom to 
- */
 function zoom(imageIDBinary, imageIDGB, index) {
+/*Function to zoom to the selected ROI, takes 4 arguments
+ * imageIDBinary: the unique id of the binary image, integer
+ * imageIDGB: the unique id of the original image, integer
+ * index: the index of the ROI that you want to zoom to, integer 
+ */
 // Check if there's an ROI selected
 	if (roiManager("count") == 0) {
 		showMessage("No ROI selected", "Please select an ROI before running this script.");
@@ -127,61 +166,43 @@ function zoom(imageIDBinary, imageIDGB, index) {
 }
 
 
-
-
-
-
-
-
-
-
-	/*Get the bounds of the selected ROI
-	roiManager("measure");
-	x = getResult("X", index);
-	y = getResult("Y", index);
-	width = getResult("XM", index);
-	height = getResult("XM", index);
-	centerX = x + (width/2);
-	centerY = y + (height/2);
-	zoomFactor = getZoom();
-	print("X-coord: " + x + "Y-coord:" + y + "Width: " + width + "Height: " + height);
-	//Zooming to the binary image selection
-
-//selectImage(imageIDGB);
-//run("Set...", "zoom=zoomFactor Y=x Y=y");
-// Dialog.create("zooming");
-//		Dialog.addMessage("checking to see if we've zoomed on the binary");
-//		Dialog.show();
-*/
-		/*
-//use file browser to open binary image
-		Dialog.create("BinaryOpener");
-		Dialog.addMessage("Open your binary image");
-		Dialog.show();
-		binaryImage = File.openDialog("Open your binary test image");
-		open(binaryImage);
-		binaryImageID = getImageID();
-		Dialog.create("ROI Manager");
-		Dialog.addCheckbox("Does your test image have ROIs traced?", false);
-		Dialog.show();
-		decision = Dialog.getCheckbox();
-		if (decision == true) {
-			print("Worked as true");
-			number = roiManager("count");		
-			run("Synchronize Windows"); //opens synchronize windows for ease of analysis
-		}else {
-//create an ROI around each defined area in the binary image (i.e. white sections)
-			print("worked as false");
-			selectImage(binaryImageID);
-			run("Analyze Particles...", "size=600-Infinity show=Nothing pixel include add include");
-			number = roiManager("count");		
-		    run("Synchronize Windows"); //opens synchronize windows for ease of analysis
-	}
-	
-	*/
-		/*	selectImage(binaryImageID);
-		Dialog.create("Save Image");
-		Dialog.addMessage("Choose a location to save the edited binary.");
-		Dialog.show();
-		pathToSave = File.openDialog("Location to save the edited binary");
-		saveAs("tiff",pathToSave + binaryImage + "_edited");*/
+	    /*
+		for(i=0; i < number; i++) {
+			roiManager("select", i); 
+			zoom(binaryImageID, originalImageID, i);
+			Dialog.createNonBlocking("Manual Editor");
+			Dialog.setLocation(1200,0);
+			Dialog.addMessage("Make manual edits desired. Press enter to move onto next ROI");
+			Dialog.addMessage("Current ROI: " + i+1);
+			Dialog.addString("Enter a specific roi if desired:", "ROI"); //option to jump to a specific ROI index
+			Dialog.addCheckbox("Mark Microglia", false); //option to mark for commenting
+			Dialog.show();
+			numberString = Dialog.getString();
+			markedOrNot = Dialog.getCheckbox();
+			if (markedOrNot == true) { //if you marked the ROI gives the user the ability to add a comment
+				Dialog.createNonBlocking("Comments about marking");
+				Dialog.addMessage("Please enter any comments about the marking, if left blank the program will default to saving only the index/name of the ROI");
+				Dialog.addString("Comment: ", "Blank");
+				Dialog.show();
+				commentROI = Dialog.getString();
+				if (commentROI == "Blank"){ //if no comment, just saves the index of the ROI
+					selectedArray[i] = i+1;
+				}
+				else{ //if any comment saves the comment as well as the index
+					selectedArray[i] = toString(i+1) + " - " + commentROI;
+				}
+				Array.print(selectedArray);
+			//	Array.print(selectedArray);
+			}
+			if (numberString != "ROI"){
+				if (isNaN(parseInt(numberString))){
+					Dialog.create("Erorr. Invalid ROI entered.");
+					Dialog.addMessage("The program will jump to the next ROI which is: " + (toString(i+2)));
+					Dialog.show();
+				}
+				else{
+					i = parseFloat(numberString)-2;
+				}
+				}
+		}
+		*/
