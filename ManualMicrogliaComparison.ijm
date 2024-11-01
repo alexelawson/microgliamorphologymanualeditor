@@ -1,8 +1,10 @@
-/*
+/* Working one!
  * Function for the manual comparison between a green/blue image and a binary image, to make side-by-side tracking more straight forward
  * Prompts the user to open two images
  * Creates an ROI around each cell of interest based upon the binary image 
  * Then goes through and zooms into the ROI's one by one, asking for user input
+ * MR278, s05 n = 6 
+ * ask about the first 3 images in 198
  */
  
 //MAIN PROGRAM
@@ -51,6 +53,7 @@ function roiIterator(number, selectedArray, binaryImageID, originalImageID){
 		Dialog.setLocation(1200,0);
 		Dialog.addMessage("Make manual edits desired. Press enter to move onto next ROI");
 		Dialog.addMessage("Current ROI: " + i+1);
+		Dialog.addMessage("If you input f into the ROI box and press ok, the selected region in the binary image will be filled black", 8, "#FF0000");
 		Dialog.addString("Enter a specific roi if desired:", "ROI"); //option to jump to a specific ROI index
 		Dialog.addCheckbox("Mark Microglia", false); //option to mark for commenting
 		Dialog.show();
@@ -68,10 +71,19 @@ function roiIterator(number, selectedArray, binaryImageID, originalImageID){
 			else{ //if any comment saves the comment as well as the index
 				selectedArray[i] = toString(i+1) + " - " + commentROI;
 			}
-		//	Array.print(selectedArray);
 			}
 		if (numberString != "ROI"){
-			if (isNaN(parseInt(numberString))){ //invalid input 
+			if (numberString == "f"){
+				selectImage(binaryImageID);
+				if (selectionType != -1) {  // Check if there is a selection (ROI) active
+        			setForegroundColor(0, 0, 0);  // Set the fill color to black (RGB: 0, 0, 0)
+        			run("Fill");
+				}
+				else {
+       				 print("No ROI selected");     // Inform the user if no ROI is selected
+    			}
+			}
+			else if (isNaN(parseInt(numberString))){ //invalid input 
 				Dialog.create("Erorr. Invalid ROI entered.");
 				Dialog.addMessage("The program will jump to the next ROI which is: " + (toString(i+2)));
 				Dialog.show();
@@ -128,19 +140,19 @@ function openBinary(){
 			roiOfInterest = File.openDialog("Choose your zip with ROI's defined:");
 			roiManager("open", roiOfInterest);
 			number = roiManager("count");		
-			run("Synchronize Windows"); //opens synchronize windows for ease of analysis
+			run("Synchronize Windows", "cursor slices frames scaling position");
 		}else { //no presaved ROI's
 //create an ROI around each defined area in the binary image (i.e. white sections)
 			selectImage(binaryImageID);
 			run("Analyze Particles...", "size=600-Infinity show=Nothing pixel include add include");
 			number = roiManager("count");		
-		    run("Synchronize Windows"); //opens synchronize windows for ease of analysis
+		    run("Synchronize Windows", "cursor slices frames scaling position");
 	}
 	resultArray = newArray(3);
 	resultArray[0] = number;
 	resultArray[1] = binaryImageID;
 	resultArray[2] = binaryImage;
-	return resultArray;
+	return resultArray; 
 }
 
 function zoom(imageIDBinary, imageIDGB, index) {
@@ -161,4 +173,6 @@ function zoom(imageIDBinary, imageIDGB, index) {
 	selectImage(imageIDGB);
 	roiManager("Select", index);
 	run("To Selection");
+	selectImage(imageIDGB);
+	roiManager("select", 1);
 }
