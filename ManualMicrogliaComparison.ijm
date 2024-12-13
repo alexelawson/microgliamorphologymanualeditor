@@ -3,8 +3,10 @@
  * Prompts the user to open two images
  * Creates an ROI around each cell of interest based upon the binary image 
  * Then goes through and zooms into the ROI's one by one, asking for user input
- * MR278, s05 n = 6 
- * ask about the first 3 images in 198
+ * 72000
+ * 20000
+ * 3360
+ * 
  */
  
 //MAIN PROGRAM
@@ -101,7 +103,7 @@ function openGBImage(){
  * Gives the option of opening an image with RGB channels or just a regular image, only difference is whether channels tool 
  * is opened upon initiation. 
  */
-		Dialog.create("ImageOpener");
+		Dialog.createNonBlocking("ImageOpener");
 		Dialog.addMessage("Open your original test image (blue/green)");
 		Dialog.addCheckbox("Is your image a split channel RGB?", false);
 		Dialog.show();
@@ -123,7 +125,8 @@ function openBinary(){
  * [the number of ROI's in the array, the unique ID of the binary Image, the binaryImage]
  */
 	//use file browser to open binary image
-		Dialog.create("BinaryOpener");
+		print("fiji pretty please cooperate");
+		Dialog.createNonBlocking("BinaryOpener");
 		Dialog.addMessage("Open your binary image");
 		Dialog.show();
 		binaryImage = File.openDialog("Open your binary test image");
@@ -176,3 +179,6 @@ function zoom(imageIDBinary, imageIDGB, index) {
 	selectImage(imageIDGB);
 	roiManager("select", 1);
 }
+
+
+
